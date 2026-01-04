@@ -99,4 +99,3 @@ def delete_hotel(
     global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
     return {"status": "OK"}
-
