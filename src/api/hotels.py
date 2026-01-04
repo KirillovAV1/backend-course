@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query, Body, Path
-from schemas.hotels import Hotel, HotelPATCH
+from src.schemas.hotels import Hotel, HotelPATCH
 from fastapi.openapi.models import Example
-from dependencies import PaginationDep
+from src.api.dependencies import PaginationDep
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -99,3 +99,4 @@ def delete_hotel(
     global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
     return {"status": "OK"}
+
