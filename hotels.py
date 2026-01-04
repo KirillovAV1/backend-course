@@ -1,10 +1,17 @@
 from fastapi import APIRouter, Query, Body, Path
+from schemas.hotels import Hotel, HotelPATCH
+from fastapi.openapi.models import Example
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 hotels = [
-    {"id": 1, "title": "Сочи", "name": "Sochi"},
-    {"id": 2, "title": "Дубай", "name": "Dubai"},
+    {"id": 1, "title": "Сочи", "name": "sochi"},
+    {"id": 2, "title": "Дубай", "name": "dubai"},
+    {"id": 3, "title": "Мальдивы", "name": "maldivi"},
+    {"id": 4, "title": "Геленджик", "name": "gelendzhik"},
+    {"id": 5, "title": "Москва", "name": "moscow"},
+    {"id": 6, "title": "Казань", "name": "kazan"},
+    {"id": 7, "title": "Санкт-Петербург", "name": "spb"},
 ]
 
 
@@ -29,15 +36,24 @@ def get_hotels(
 
 @router.post("",
              summary="Создание отеля")
-def create_hotel(
-        title: str = Body(embed=True, description="Название отеля (Кириллица)"),
-        name: str = Body(embed=True, description="Название отеля (Латиница)"),
+def create_hotel(hotel_data: Hotel = Body(openapi_examples={
+    "sochi": Example(
+        summary="Пример для Сочи",
+        value={"title": "Сочи",
+               "name": "Sochi"},
+    ),
+    "dubai": Example(
+        summary="Пример для Дубай",
+        value={"title": "Дубай",
+               "name": "Dubai"},
+    ),
+})
 ):
     global hotels
     hotels.append({
         "id": hotels[-1]["id"] + 1,
-        "title": title,
-        "name": name
+        "title": hotel_data.title,
+        "name": hotel_data.name
     })
     return {"status": "OK"}
 
@@ -46,15 +62,12 @@ def create_hotel(
             summary="Обновление всех полей отеля по hotel_id")
 def full_update_hotel(
         hotel_id: int = Path(description="ID отеля"),
-        title: str = Body(embed=True, description="Название отеля (Кириллица)"),
-        name: str = Body(embed=True, description="Название отеля (Латиница)"),
+        hotel_data: Hotel = Body()
 ):
     global hotels
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            hotel["title"] = title
-            hotel["name"] = name
-            break
+    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
+    hotel["title"] = hotel_data.title
+    hotel["name"] = hotel_data.name
     return {"status": "OK"}
 
 
@@ -62,17 +75,14 @@ def full_update_hotel(
               summary="Обновление выбранных полей по hotel_id")
 def partial_update_hotel(
         hotel_id: int = Path(description="ID отеля"),
-        title: str = Body(embed=True, description="Название отеля (Кириллица)"),
-        name: str = Body(embed=True, description="Название отеля (Латиница)"),
+        hotel_data: HotelPATCH = Body()
 ):
     global hotels
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            if title:
-                hotel["title"] = title
-            if name:
-                hotel["name"] = name
-            break
+    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
+    if hotel_data.title:
+        hotel["title"] = hotel_data.title
+    if hotel_data.name:
+        hotel["name"] = hotel_data.name
     return {"status": "OK"}
 
 
