@@ -1,19 +1,13 @@
 from fastapi import APIRouter, Query, Body, Path
-from src.schemas.hotels import Hotel, HotelPATCH
 from fastapi.openapi.models import Example
+from sqlalchemy import insert
+
+from src.models.hotels import HotelsORM
+from src.schemas.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
+from src.database import async_session_maker
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
-
-hotels = [
-    {"id": 1, "title": "Сочи", "name": "sochi"},
-    {"id": 2, "title": "Дубай", "name": "dubai"},
-    {"id": 3, "title": "Мальдивы", "name": "maldivi"},
-    {"id": 4, "title": "Геленджик", "name": "gelendzhik"},
-    {"id": 5, "title": "Москва", "name": "moscow"},
-    {"id": 6, "title": "Казань", "name": "kazan"},
-    {"id": 7, "title": "Санкт-Петербург", "name": "spb"},
-]
 
 
 @router.get("",
@@ -41,25 +35,25 @@ def get_hotels(
 
 @router.post("",
              summary="Создание отеля")
-def create_hotel(hotel_data: Hotel = Body(openapi_examples={
+async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
     "sochi": Example(
-        summary="Пример для Сочи",
-        value={"title": "Сочи",
-               "name": "Sochi"},
+        summary="Пример отеля для Сочи",
+        value={"title": "Звездочка",
+               "location": "Сочи, ул. Ленина"},
     ),
     "dubai": Example(
-        summary="Пример для Дубай",
-        value={"title": "Дубай",
-               "name": "Dubai"},
+        summary="Пример отеля для Дубай",
+        value={"title": "Relax",
+               "location": "Dubai, Apple street"},
     ),
 })
 ):
-    global hotels
-    hotels.append({
-        "id": hotels[-1]["id"] + 1,
-        "title": hotel_data.title,
-        "name": hotel_data.name
-    })
+    async with async_session_maker() as session:
+        add_hotel_stmt = insert(HotelsORM).values(**hotel_data.model_dump())
+        await session.execute(add_hotel_stmt)
+        await session.commit()
+
+
     return {"status": "OK"}
 
 
