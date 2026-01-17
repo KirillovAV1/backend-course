@@ -23,7 +23,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         "hotels",
-        sa.Column("id", sa.String(), nullable=False),
+        sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(length=100), nullable=False),
         sa.Column("location", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
