@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Query, Body, Path
 from fastapi.openapi.models import Example
-from sqlalchemy import insert, select, update, delete
+from sqlalchemy import insert, select, update, delete, func
 
 from src.models.hotels import HotelsORM
 from src.schemas.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
-from src.database import async_session_maker
+from src.database import async_session_maker, engine
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -22,9 +22,9 @@ async def get_hotels(
     async with async_session_maker() as session:
         query = select(HotelsORM)
         if title:
-            query = query.where(HotelsORM.title.ilike(f"%{title.strip()}%"))
+            query = query.where(func.lower(HotelsORM.title).contains(title.strip().lower()))
         if location:
-            query = query.where(HotelsORM.location.ilike(f"%{location.strip()}%"))
+            query = query.where(func.lower(HotelsORM.location).contains(location.strip().lower()))
 
         query = (query
                  .limit(per_page)
