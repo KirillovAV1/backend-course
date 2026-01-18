@@ -61,7 +61,7 @@ async def full_update_hotel(
             if result is None:
                 raise HTTPException(status_code=404, detail="Объект не найден")
         except MultipleResultsFound:
-            raise HTTPException(status_code=402, detail="Найдено больше одного объекта")
+            raise HTTPException(status_code=422, detail="Найдено больше одного объекта")
 
         await HotelsRepository(session).update(data=hotel_data, id=hotel_id)
         await session.commit()
@@ -95,7 +95,7 @@ async def delete_hotel(
             if result is None:
                 raise HTTPException(status_code=404, detail="Объект не найден")
         except MultipleResultsFound:
-            raise HTTPException(status_code=402, detail="Найдено больше одного объекта")
+            raise HTTPException(status_code=422, detail="Найдено больше одного объекта")
 
         await HotelsRepository(session).delete(id=hotel_id)
         await session.commit()
