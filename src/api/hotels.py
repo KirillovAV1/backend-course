@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Query, Body, Path
+from fastapi import APIRouter, Query, Body, Path, HTTPException
 from fastapi.openapi.models import Example
-from sqlalchemy import insert, select, update, delete, func
+from sqlalchemy.exc import MultipleResultsFound
 
-from src.models.hotels import HotelsORM
 from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
@@ -52,14 +51,21 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
 
 @router.put("/{hotel_id}",
             summary="Обновление всех полей отеля по hotel_id")
-def full_update_hotel(
+async def full_update_hotel(
         hotel_id: int = Path(description="ID отеля"),
         hotel_data: Hotel = Body()
 ):
-    global hotels
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
-    hotel["title"] = hotel_data.title
-    hotel["name"] = hotel_data.name
+    async with async_session_maker() as session:
+        try:
+            result = await HotelsRepository(session).get_one_or_none(id=hotel_id)
+            if result is None:
+                raise HTTPException(status_code=404, detail="Объект не найден")
+        except MultipleResultsFound:
+            raise HTTPException(status_code=402, detail="Найдено больше одного объекта")
+
+        await HotelsRepository(session).update(data=hotel_data, id=hotel_id)
+        await session.commit()
+
     return {"status": "OK"}
 
 
@@ -80,9 +86,18 @@ def partial_update_hotel(
 
 @router.delete("/{hotel_id}",
                summary="Удаление отеля по hotel_id")
-def delete_hotel(
+async def delete_hotel(
         hotel_id: int = Path(description="ID отеля")
 ):
-    global hotels
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
+    async with async_session_maker() as session:
+        try:
+            result = await HotelsRepository(session).get_one_or_none(id=hotel_id)
+            if result is None:
+                raise HTTPException(status_code=404, detail="Объект не найден")
+        except MultipleResultsFound:
+            raise HTTPException(status_code=402, detail="Найдено больше одного объекта")
+
+        await HotelsRepository(session).delete(id=hotel_id)
+        await session.commit()
+
     return {"status": "OK"}
