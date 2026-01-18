@@ -71,16 +71,14 @@ async def full_update_hotel(
 
 @router.patch("/{hotel_id}",
               summary="Обновление выбранных полей по hotel_id")
-def partial_update_hotel(
+async def partial_update_hotel(
         hotel_id: int = Path(description="ID отеля"),
         hotel_data: HotelPATCH = Body()
 ):
-    global hotels
-    hotel = [hotel for hotel in hotels if hotel["id"] == hotel_id][0]
-    if hotel_data.title:
-        hotel["title"] = hotel_data.title
-    if hotel_data.name:
-        hotel["name"] = hotel_data.name
+    async with async_session_maker() as session:
+        await HotelsRepository(session).update(data=hotel_data, id=hotel_id, exclude_unset=True)
+        await session.commit()
+
     return {"status": "OK"}
 
 
