@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import func, select, delete
 
 from src.models.hotels import HotelsORM
 from src.repositories.base import BaseRepository
@@ -19,9 +19,11 @@ class HotelsRepository(BaseRepository):
         if location:
             query = query.where(func.lower(self.model.location).contains(location.strip().lower()))
 
-        query = (query
+        query = (
+            query
                  .limit(limit)
-                 .offset(offset))
+                 .offset(offset)
+                 )
 
         result = await self.session.execute(query)
         return result.scalars().all()
