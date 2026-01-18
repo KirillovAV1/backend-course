@@ -3,6 +3,7 @@ from fastapi.openapi.models import Example
 from sqlalchemy import insert, select, update, delete, func
 
 from src.models.hotels import HotelsORM
+from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
@@ -18,21 +19,13 @@ async def get_hotels(
         location: str | None = Query(None, description="Адрес отеля"),
 ):
     per_page = pagination.per_page or 5
-
     async with async_session_maker() as session:
-        query = select(HotelsORM)
-        if title:
-            query = query.where(func.lower(HotelsORM.title).contains(title.strip().lower()))
-        if location:
-            query = query.where(func.lower(HotelsORM.location).contains(location.strip().lower()))
-
-        query = (query
-                 .limit(per_page)
-                 .offset(per_page * (pagination.page - 1)))
-
-        result = await session.execute(query)
-        hotels = result.scalars().all()
-        return hotels
+        return await HotelsRepository(session).get_all(
+            location=location,
+            title=title,
+            limit=per_page,
+            offset=per_page * (pagination.page - 1)
+        )
 
 
 @router.post("",
