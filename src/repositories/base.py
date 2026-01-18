@@ -18,12 +18,23 @@ class BaseRepository:
         result = await self.session.execute(query)
         return result.scalars().one_or_none()
 
-    async def add(self, data: BaseModel) -> None:
-        add_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
+    async def add(
+            self,
+            data: BaseModel
+    ) -> None:
+        add_stmt = (
+            insert(self.model)
+            .values(**data.model_dump())
+            .returning(self.model))
         result = await self.session.execute(add_stmt)
         return result.scalars().one()
 
-    async def update(self, data: BaseModel, exclude_unset: bool = False, **filters) -> None:
+    async def update(
+            self,
+            data: BaseModel,
+            exclude_unset: bool = False,
+            **filters
+    ) -> None:
         update_stmt = (
             update(self.model)
             .filter_by(**filters)
