@@ -57,3 +57,10 @@ async def only_auth(
     async with async_session_maker() as session:
         user = await UsersRepository(session).get_one_or_none(id=user_id)
         return user
+
+
+@router.post("/logout",
+            summary="Выход из системы")
+async def logout_user(response: Response):
+    response.delete_cookie("access_token")
+    return {"status": "Logged out"}
