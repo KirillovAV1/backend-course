@@ -15,6 +15,10 @@ class AuthService:
         return self.password_hash.verify(plain_password, hashed_password)
 
     @staticmethod
+    def decode_token(token: str):
+        return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+
+    @staticmethod
     def create_access_token(data: dict) -> str:
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
