@@ -3,7 +3,7 @@ from fastapi.openapi.models import Example
 from sqlalchemy.exc import MultipleResultsFound
 
 from src.repositories.hotels import HotelsRepository
-from src.schemas.hotels import Hotel, HotelPATCH
+from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 
@@ -26,19 +26,19 @@ async def get_hotels(
             offset=per_page * (pagination.page - 1)
         )
 
+
 @router.get("/{hotel_id}",
             summary="Получение отеля по ID")
 async def get_hotel(
         hotel_id: int = Path(description="ID отеля")
 ):
     async with async_session_maker() as session:
-        result = await HotelsRepository(session).get_one_or_none(id=hotel_id)
-        return result
+        return await HotelsRepository(session).get_one_or_none(id=hotel_id)
 
 
 @router.post("",
              summary="Создание отеля")
-async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
+async def create_hotel(hotel_data: HotelAdd = Body(openapi_examples={
     "sochi": Example(
         summary="Пример отеля для Сочи",
         value={"title": "Звездочка",
@@ -62,7 +62,7 @@ async def create_hotel(hotel_data: Hotel = Body(openapi_examples={
             summary="Обновление всех полей отеля по hotel_id")
 async def full_update_hotel(
         hotel_id: int = Path(description="ID отеля"),
-        hotel_data: Hotel = Body()
+        hotel_data: HotelAdd = Body()
 ):
     async with async_session_maker() as session:
         try:

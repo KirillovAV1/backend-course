@@ -1,11 +1,13 @@
-from sqlalchemy import func, select, delete
+from sqlalchemy import func, select
 
 from src.models.hotels import HotelsORM
 from src.repositories.base import BaseRepository
+from src.schemas.hotels import Hotel
 
 
 class HotelsRepository(BaseRepository):
     model = HotelsORM
+    schema = Hotel
 
     async def get_all(self,
                       title: str | None,
@@ -21,9 +23,9 @@ class HotelsRepository(BaseRepository):
 
         query = (
             query
-                 .limit(limit)
-                 .offset(offset)
-                 )
+            .limit(limit)
+            .offset(offset)
+        )
 
         result = await self.session.execute(query)
-        return result.scalars().all()
+        return [self.schema.model_validate(obj, from_attributes=True) for obj in result.scalars().all()]
