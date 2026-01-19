@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr
 
 
-class UserRequestAdd(BaseModel):
+class UserRequest(BaseModel):
     email: EmailStr = Field(description="Электронный адрес")
     password: str = Field(description="Пароль")
 
@@ -15,9 +15,13 @@ class UserParams(BaseModel):
     username: str | None = Field(default=None, description="Никнейм пользователя")
 
 
+class User(UserParams):
+    id: int = Field(description="ID пользователя")
+
+
 class UserAdd(UserParams):
     hashed_password: str = Field(description="Хеш-пароля")
 
 
-class User(UserParams):
-    id: int = Field(description="ID пользователя")
+class UserWithHashPassword(User):
+    hashed_password: str = Field(description="Хеш-пароля")

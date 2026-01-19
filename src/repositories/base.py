@@ -19,7 +19,7 @@ class BaseRepository:
         query = select(self.model).filter_by(**filters)
         result = await self.session.execute(query)
         obj = result.scalars().one_or_none()
-        if obj in None:
+        if obj is None:
             return None
         return self.schema.model_validate(obj, from_attributes=True)
 
