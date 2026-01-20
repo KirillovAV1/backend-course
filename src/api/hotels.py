@@ -3,7 +3,7 @@ from fastapi.openapi.models import Example
 from sqlalchemy.exc import MultipleResultsFound
 
 from src.repositories.hotels import HotelsRepository
-from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
+from src.schemas.hotels import HotelPATCH, HotelAdd
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 
