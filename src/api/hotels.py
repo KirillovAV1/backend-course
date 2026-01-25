@@ -2,10 +2,8 @@ from fastapi import APIRouter, Query, Body, Path, HTTPException
 from fastapi.openapi.models import Example
 from sqlalchemy.exc import MultipleResultsFound
 
-from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import HotelPATCH, HotelAdd
-from src.api.dependencies import PaginationDep
-from src.database import async_session_maker, engine
+from src.api.dependencies import PaginationDep, DBDep
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -14,97 +12,97 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
             summary="Получение списка отелей")
 async def get_hotels(
         pagination: PaginationDep,
+        db: DBDep,
         title: str | None = Query(None, description="Название отеля"),
         location: str | None = Query(None, description="Адрес отеля"),
 ):
     per_page = pagination.per_page or 5
-    async with async_session_maker() as session:
-        return await HotelsRepository(session).get_all(
-            location=location,
-            title=title,
-            limit=per_page,
-            offset=per_page * (pagination.page - 1)
-        )
+    return await db.hotels.get_all(
+        location=location,
+        title=title,
+        limit=per_page,
+        offset=per_page * (pagination.page - 1)
+    )
 
 
 @router.get("/{hotel_id}",
             summary="Получение отеля по ID")
 async def get_hotel(
-        hotel_id: int = Path(description="ID отеля")
+        db: DBDep,
+        hotel_id: int = Path(description="ID отеля"),
 ):
-    async with async_session_maker() as session:
-        return await HotelsRepository(session).get_one_or_none(id=hotel_id)
+    return await db.hotels.get_one_or_none(id=hotel_id)
 
 
 @router.post("",
              summary="Создание отеля")
-async def create_hotel(hotel_data: HotelAdd = Body(openapi_examples={
-    "sochi": Example(
-        summary="Пример отеля для Сочи",
-        value={"title": "Звездочка",
-               "location": "Сочи, ул. Ленина"},
-    ),
-    "dubai": Example(
-        summary="Пример отеля для Дубай",
-        value={"title": "Relax",
-               "location": "Dubai, Apple street"},
-    ),
-})
+async def create_hotel(
+        db: DBDep,
+        hotel_data: HotelAdd = Body(openapi_examples={
+            "sochi": Example(
+                summary="Пример отеля для Сочи",
+                value={"title": "Звездочка",
+                       "location": "Сочи, ул. Ленина"},
+            ),
+            "dubai": Example(
+                summary="Пример отеля для Дубай",
+                value={"title": "Relax",
+                       "location": "Dubai, Apple street"},
+            ),
+        })
 ):
-    async with async_session_maker() as session:
-        hotel = await HotelsRepository(session).add(hotel_data)
-        await session.commit()
-
+    hotel = await db.hotels.add(hotel_data)
     return {"status": "OK", "data": hotel}
 
 
 @router.put("/{hotel_id}",
             summary="Обновление всех полей отеля по hotel_id")
 async def full_update_hotel(
+        db: DBDep,
         hotel_id: int = Path(description="ID отеля"),
         hotel_data: HotelAdd = Body()
 ):
-    async with async_session_maker() as session:
-        try:
-            result = await HotelsRepository(session).get_one_or_none(id=hotel_id)
-            if result is None:
-                raise HTTPException(status_code=404, detail="Объект не найден")
-        except MultipleResultsFound:
-            raise HTTPException(status_code=422, detail="Найдено больше одного объекта")
+    try:
+        result = await db.hotels.get_one_or_none(id=hotel_id)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Объект не найден")
+    except MultipleResultsFound:
+        raise HTTPException(status_code=422, detail="Найдено больше одного объекта")
 
-        await HotelsRepository(session).update(data=hotel_data, id=hotel_id)
-        await session.commit()
-
+    await db.hotels.update(data=hotel_data, id=hotel_id)
     return {"status": "OK"}
 
 
 @router.patch("/{hotel_id}",
               summary="Обновление выбранных полей по hotel_id")
 async def partial_update_hotel(
+        db: DBDep,
         hotel_id: int = Path(description="ID отеля"),
         hotel_data: HotelPATCH = Body()
 ):
-    async with async_session_maker() as session:
-        await HotelsRepository(session).update(data=hotel_data, id=hotel_id, exclude_unset=True)
-        await session.commit()
+    try:
+        result = await db.hotels.get_one_or_none(id=hotel_id)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Объект не найден")
+    except MultipleResultsFound:
+        raise HTTPException(status_code=422, detail="Найдено больше одного объекта")
 
+    await db.hotels.update(data=hotel_data, id=hotel_id, exclude_unset=True)
     return {"status": "OK"}
 
 
 @router.delete("/{hotel_id}",
                summary="Удаление отеля по hotel_id")
 async def delete_hotel(
+        db: DBDep,
         hotel_id: int = Path(description="ID отеля")
 ):
-    async with async_session_maker() as session:
-        try:
-            result = await HotelsRepository(session).get_one_or_none(id=hotel_id)
-            if result is None:
-                raise HTTPException(status_code=404, detail="Объект не найден")
-        except MultipleResultsFound:
-            raise HTTPException(status_code=422, detail="Найдено больше одного объекта")
+    try:
+        result = await db.hotels.get_one_or_none(id=hotel_id)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Объект не найден")
+    except MultipleResultsFound:
+        raise HTTPException(status_code=422, detail="Найдено больше одного объекта")
 
-        await HotelsRepository(session).delete(id=hotel_id)
-        await session.commit()
-
+    await db.hotels.delete(id=hotel_id)
     return {"status": "OK"}
