@@ -9,8 +9,10 @@ class BaseRepository:
     def __init__(self, session):
         self.session = session
 
-    async def get_filtered(self, **filters):
-        query = select(self.model).filter_by(**filters)
+    async def get_filtered(self, *fil, **filters):
+        query = (select(self.model)
+                 .filter(*fil)
+                 .filter_by(**filters))
         result = await self.session.execute(query)
         return [self.schema.model_validate(obj, from_attributes=True) for obj in result.scalars().all()]
 

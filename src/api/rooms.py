@@ -1,5 +1,11 @@
-from fastapi import APIRouter, Path, Body, HTTPException
+from datetime import datetime
+from fastapi import APIRouter, Path, Body, HTTPException, Query
 from fastapi.openapi.models import Example
+
+from fastapi.exceptions import FastAPIDeprecationWarning
+import warnings
+
+warnings.simplefilter(action='ignore', category=FastAPIDeprecationWarning)
 
 from src.api.dependencies import DBDep
 from src.schemas.rooms import RoomResponse, RoomAdd, RoomRequest, RoomPatch
@@ -15,12 +21,14 @@ async def get_all_rooms(db: DBDep):
 
 
 @router.get("/{hotel_id}/rooms",
-            summary="Получение списка комнат у отеля")
+            summary="Получение комнат у отеля, доступных для бронирования")
 async def get_hotels_rooms(
         db: DBDep,
-        hotel_id: int = Path(description="ID отеля")
+        hotel_id: int = Path(description="ID отеля"),
+        date_from: datetime = Query(example="2025-01-01T00:00:00", description="Дата заезда"),
+        date_to: datetime = Query(example="2025-01-08T00:00:00", description="Дата выезда"),
 ):
-    return await db.rooms.get_filtered(hotel_id=hotel_id)
+    return await db.rooms.get_filtered_by_time(hotel_id=hotel_id, date_to=date_to, date_from=date_from)
 
 
 @router.get("/{hotel_id}/rooms/{room_id}",
