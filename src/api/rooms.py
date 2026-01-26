@@ -5,6 +5,8 @@ from fastapi.openapi.models import Example
 from fastapi.exceptions import FastAPIDeprecationWarning
 import warnings
 
+from src.schemas.facilities import RoomFacilityRequest
+
 warnings.simplefilter(action='ignore', category=FastAPIDeprecationWarning)
 
 from src.api.dependencies import DBDep
@@ -55,8 +57,8 @@ async def create_hotel_room(
                 value={
                     "title": "Люкс-комната",
                     "price": 250,
-                    "quantity": 2
-
+                    "quantity": 2,
+                    "facilities_ids": [1, 2]
                 }
             ),
             "2": Example(
@@ -66,7 +68,6 @@ async def create_hotel_room(
                     "description": "Комната с крысами",
                     "price": 10,
                     "quantity": 8
-
                 }
             ),
         })
@@ -77,6 +78,9 @@ async def create_hotel_room(
         raise HTTPException(status_code=404, detail=f"Отель с id {hotel_id} не найден")
     room = await db.rooms.add(_room_data)
     _room = RoomResponse(hotel_data=hotel_data, **room.model_dump())
+    rooms_facilities_ids = [RoomFacilityRequest(room_id=room.id, facility_id=facility_id)
+                            for facility_id in room_data.facilities_ids]
+    await db.rooms_facilities.add_bulk(rooms_facilities_ids)
     return {"status": "ok", "room": _room}
 
 

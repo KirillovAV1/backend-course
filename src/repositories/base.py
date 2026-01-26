@@ -1,3 +1,5 @@
+from typing import List
+
 from sqlalchemy import select, insert, delete, update
 from pydantic import BaseModel
 
@@ -38,6 +40,15 @@ class BaseRepository:
         result = await self.session.execute(add_stmt)
         obj = result.scalars().one()
         return self.schema.model_validate(obj, from_attributes=True)
+
+    async def add_bulk(
+            self,
+            data: List[BaseModel]
+    ):
+        add_stmt = (
+            insert(self.model)
+            .values([obj.model_dump() for obj in data]))
+        await self.session.execute(add_stmt)
 
     async def update(
             self,

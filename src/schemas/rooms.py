@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel, Field
 from src.schemas.hotels import Hotel
 
@@ -10,10 +11,10 @@ class RoomParams(BaseModel):
 
 
 class RoomRequest(RoomParams):
-    pass
+    facilities_ids: List[int] | None = Field(None, description="Список удобств для комнаты")
 
 
-class RoomAdd(RoomRequest):
+class RoomAdd(RoomParams):
     hotel_id: int
 
 
