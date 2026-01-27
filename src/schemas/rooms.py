@@ -1,5 +1,6 @@
-from typing import List
 from pydantic import BaseModel, Field
+
+from src.schemas.facilities import Facility
 from src.schemas.hotels import Hotel
 
 
@@ -10,20 +11,8 @@ class RoomParams(BaseModel):
     quantity: int = Field(description="Количество подобных комнат в отеле")
 
 
-class RoomPatchParams(BaseModel):
-    title: str | None = Field(None, description="Название комнаты")
-    description: str | None = Field(None, description="Описание комнаты")
-    price: int | None = Field(None, description="Ежедневная стоимость комнаты")
-    quantity: int | None = Field(None, description="Количество подобных комнат в отеле")
-
-
 class RoomRequest(RoomParams):
-    facilities_ids: List[int] = Field([], description="Список удобств для комнаты")
-
-
-class RoomResponse(RoomParams):
-    id: int
-    hotel_data: Hotel
+    facilities_ids: list[int] = Field([], description="Список удобств для комнаты")
 
 
 class RoomAdd(RoomParams):
@@ -32,12 +21,20 @@ class RoomAdd(RoomParams):
 
 class Room(RoomParams):
     id: int
-    hotel_id: int
+    hotel_data: Hotel
+    facilities_data: list[Facility]
+
+
+class RoomPatchParams(BaseModel):
+    title: str | None = Field(None, description="Название комнаты")
+    description: str | None = Field(None, description="Описание комнаты")
+    price: int | None = Field(None, description="Ежедневная стоимость комнаты")
+    quantity: int | None = Field(None, description="Количество подобных комнат в отеле")
 
 
 class RoomPatchRequest(RoomPatchParams):
-    facilities_ids: List[int] | None = Field(None, description="Список удобств для комнаты")
+    facilities_ids: list[int] | None = Field(None, description="Список удобств для комнаты")
+
 
 class RoomPatch(RoomPatchParams):
     hotel_id: int
-

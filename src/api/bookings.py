@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, Body
 from fastapi.openapi.models import Example
 
@@ -12,7 +10,7 @@ router = APIRouter(prefix="/bookings",
 
 @router.get("/",
             summary="Получение всех бронирований",
-            response_model=List[Booking])
+            response_model=list[Booking])
 async def get_bookings(
         db: DBDep,
 ):
@@ -51,7 +49,7 @@ async def create_booking(
 
 @router.get("/me",
             summary="Получение бронирования текущего пользователя",
-            response_model=List[Booking])
+            response_model=list[Booking])
 async def get_users_bookings(
         user_id: UserIdDep,
         db: DBDep,

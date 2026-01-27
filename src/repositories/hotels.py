@@ -1,6 +1,4 @@
 from datetime import datetime
-from typing import List
-
 from sqlalchemy import func, select
 
 from src.models.hotels import HotelsORM
@@ -22,7 +20,7 @@ class HotelsRepository(BaseRepository):
             location: str | None,
             limit: int,
             offset: int | None
-    ) -> List[Hotel]:
+    ) -> list[Hotel]:
         rooms_id = rooms_id_for_booking(date_to=date_to, date_from=date_from)
 
         hotels_id = (

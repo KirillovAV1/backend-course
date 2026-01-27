@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy import select, insert, delete, update
 from pydantic import BaseModel
 
@@ -43,7 +41,7 @@ class BaseRepository:
 
     async def add_bulk(
             self,
-            data: List[BaseModel]
+            data: list[BaseModel]
     ):
         add_stmt = (
             insert(self.model)

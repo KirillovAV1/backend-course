@@ -1,5 +1,5 @@
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, DateTime, func
 from datetime import datetime
 
@@ -22,3 +22,8 @@ class BookingsORM(Base):
     @total_cost.expression
     def total_cost(cls) -> int:
         return cls.price * func.date_part("day", cls.date_to - cls.date_from)
+
+    room_data: Mapped["RoomsORM"] = relationship(
+        back_populates="bookings_data",
+        lazy="selectin"
+    )

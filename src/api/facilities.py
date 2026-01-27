@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import APIRouter, Body
 from fastapi.openapi.models import Example
 
@@ -13,7 +12,7 @@ router = APIRouter(
 
 @router.get("",
             summary="Получение списка удобств",
-            response_model=List[Facility])
+            response_model=list[Facility])
 async def get_facilities(
         db: DBDep,
 ):

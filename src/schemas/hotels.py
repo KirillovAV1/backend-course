@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 
-
 class HotelAdd(BaseModel):
     title: str = Field(description="Название отеля")
     location: str = Field(description="Адрес отеля")

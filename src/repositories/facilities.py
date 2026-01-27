@@ -1,9 +1,8 @@
-from typing import List
-from sqlalchemy import delete, tuple_, select, insert
+from sqlalchemy import delete, select, insert
 
 from src.models.facilities import FacilitiesORM, RoomsFacilitiesORM
 from src.repositories.base import BaseRepository
-from src.schemas.facilities import Facility, RoomFacility, RoomFacilityRequest
+from src.schemas.facilities import Facility, RoomFacility
 
 
 class FacilitiesRepository(BaseRepository):
@@ -16,7 +15,7 @@ class RoomsFacilitiesRepository(BaseRepository):
     schema = RoomFacility
 
     async def set_facilities(self,
-                             room_id, facilities_ids=List[int]):
+                             room_id, facilities_ids=list[int]):
         query = select(self.model.facility_id).filter_by(room_id=room_id)
         result = await self.session.execute(query)
         old_facilities_ids = result.scalars().all()

@@ -10,7 +10,7 @@ from src.schemas.facilities import RoomFacilityRequest
 warnings.simplefilter(action='ignore', category=FastAPIDeprecationWarning)
 
 from src.api.dependencies import DBDep
-from src.schemas.rooms import RoomResponse, RoomAdd, RoomRequest, RoomPatch, RoomPatchRequest
+from src.schemas.rooms import RoomAdd, RoomRequest, RoomPatch, RoomPatchRequest
 
 router = APIRouter(prefix="/hotels",
                    tags=["Комнаты"])
@@ -35,7 +35,7 @@ async def get_hotels_rooms(
 
 @router.get("/{hotel_id}/rooms/{room_id}",
             summary="Получение конкретной комнаты у отеля",
-            response_model=RoomResponse)
+           )
 async def get_hotels_room(
         db: DBDep,
         hotel_id: int = Path(description="ID отеля"),
@@ -43,6 +43,7 @@ async def get_hotels_room(
 ):
     hotel_data = await db.hotels.get_one_or_none(id=hotel_id)
     room_data = await db.rooms.get_one_or_none(hotel_id=hotel_id, id=room_id)
+    return room_data
     return RoomResponse(hotel_data=hotel_data, **room_data.model_dump())
 
 
@@ -78,11 +79,11 @@ async def create_hotel_room(
     if hotel_data is None:
         raise HTTPException(status_code=404, detail=f"Отель с id {hotel_id} не найден")
     room = await db.rooms.add(_room_data)
-    _room = RoomResponse(hotel_data=hotel_data, **room.model_dump())
+    # _room = RoomResponse(hotel_data=hotel_data, **room.model_dump())
     rooms_facilities_ids = [RoomFacilityRequest(room_id=room.id, facility_id=facility_id)
                             for facility_id in room_data.facilities_ids]
     await db.rooms_facilities.add_bulk(rooms_facilities_ids)
-    return {"status": "ok", "room": _room}
+    return {"status": "ok", "room": room}
 
 
 @router.put("/{hotel_id}/rooms/{room_id}",

@@ -1,6 +1,8 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
 
+from src.schemas.rooms import Room
+
 
 class BookingRequest(BaseModel):
     room_id: int = Field(description="ID комнаты")
@@ -15,3 +17,4 @@ class BookingAdd(BookingRequest):
 
 class Booking(BookingAdd):
     id: int = Field(description="ID заказа")
+    room_data: Room
