@@ -10,7 +10,7 @@ from src.schemas.facilities import RoomFacilityRequest
 warnings.simplefilter(action='ignore', category=FastAPIDeprecationWarning)
 
 from src.api.dependencies import DBDep
-from src.schemas.rooms import RoomResponse, RoomAdd, RoomRequest, RoomPatch
+from src.schemas.rooms import RoomResponse, RoomAdd, RoomRequest, RoomPatch, RoomPatchRequest
 
 router = APIRouter(prefix="/hotels",
                    tags=["Комнаты"])
@@ -58,7 +58,7 @@ async def create_hotel_room(
                     "title": "Люкс-комната",
                     "price": 250,
                     "quantity": 2,
-                    "facilities_ids": [1, 2]
+                    "facilities_ids": [3, 2]
                 }
             ),
             "2": Example(
@@ -67,7 +67,8 @@ async def create_hotel_room(
                     "title": "Обычная комната",
                     "description": "Комната с крысами",
                     "price": 10,
-                    "quantity": 8
+                    "quantity": 8,
+                    "facilities_ids": [1, 2]
                 }
             ),
         })
@@ -96,7 +97,8 @@ async def update_hotel_room(
                 value={
                     "title": "Повышен",
                     "price": 100,
-                    "quantity": 1
+                    "quantity": 1,
+                    "facilities_ids": [3, 2]
                 }
             ),
             "2": Example(
@@ -105,13 +107,18 @@ async def update_hotel_room(
                     "title": "Понижен",
                     "description": "Теперь здесь помойка",
                     "price": 100,
-                    "quantity": 1
+                    "quantity": 1,
+                    "facilities_ids": [1, 2]
                 }
             ),
 
         })
 ):
-    await db.rooms.update(data=room_data, id=room_id, hotel_id=hotel_id)
+
+    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump())
+    await db.rooms.update(data=_room_data, id=room_id)
+    await db.rooms_facilities.set_facilities(room_id=room_id, facilities_ids=room_data.facilities_ids)
+
     return {"status": "ok"}
 
 
@@ -121,13 +128,14 @@ async def partial_update_hotel_room(
         db: DBDep,
         hotel_id: int = Path(description="ID отеля"),
         room_id: int = Path(description="ID номера"),
-        room_data: RoomPatch = Body(openapi_examples={
+        room_data: RoomPatchRequest = Body(openapi_examples={
             "1": Example(
                 summary="Пример 1",
                 value={
                     "title": "Цена понижена",
                     "price": 1,
-                    "quantity": 100
+                    "quantity": 100,
+                    "facilities_ids": [3, 2]
                 }
             ),
             "2": Example(
@@ -135,11 +143,16 @@ async def partial_update_hotel_room(
                 value={
                     "description": "Цена повышена",
                     "price": 500,
+                    "facilities_ids": [1, 2]
                 }
             ),
         })
 ):
-    await db.rooms.update(data=room_data, id=room_id, hotel_id=hotel_id, exclude_unset=True)
+    _room_data = RoomPatch(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
+    await db.rooms.update(data=_room_data, id=room_id, exclude_unset=True)
+    if room_data.facilities_ids:
+        await db.rooms_facilities.set_facilities(room_id=room_id, facilities_ids=room_data.facilities_ids)
+
     return {"status": "ok"}
 
 

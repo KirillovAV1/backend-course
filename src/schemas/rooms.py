@@ -10,8 +10,20 @@ class RoomParams(BaseModel):
     quantity: int = Field(description="Количество подобных комнат в отеле")
 
 
+class RoomPatchParams(BaseModel):
+    title: str | None = Field(None, description="Название комнаты")
+    description: str | None = Field(None, description="Описание комнаты")
+    price: int | None = Field(None, description="Ежедневная стоимость комнаты")
+    quantity: int | None = Field(None, description="Количество подобных комнат в отеле")
+
+
 class RoomRequest(RoomParams):
-    facilities_ids: List[int] | None = Field(None, description="Список удобств для комнаты")
+    facilities_ids: List[int] = Field([], description="Список удобств для комнаты")
+
+
+class RoomResponse(RoomParams):
+    id: int
+    hotel_data: Hotel
 
 
 class RoomAdd(RoomParams):
@@ -23,13 +35,9 @@ class Room(RoomParams):
     hotel_id: int
 
 
-class RoomResponse(RoomParams):
-    id: int
-    hotel_data: Hotel
+class RoomPatchRequest(RoomPatchParams):
+    facilities_ids: List[int] | None = Field(None, description="Список удобств для комнаты")
 
+class RoomPatch(RoomPatchParams):
+    hotel_id: int
 
-class RoomPatch(BaseModel):
-    title: str | None = Field(None, description="Название комнаты")
-    description: str | None = Field(None, description="Описание комнаты")
-    price: int | None = Field(None, description="Ежедневная стоимость комнаты")
-    quantity: int | None = Field(None, description="Количество подобных комнат в отеле")
